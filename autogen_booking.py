@@ -1,5 +1,7 @@
 import os
 
+import json
+
 from autogen import ConversableAgent
 
 # automatically terminate at the end system_message="You are helping a user
@@ -49,8 +51,13 @@ json_result = human_proxy.initiate_chat(
     message= formatted_chat
 )
 
+extracted_info = json_result.summary
+
 print("chat summary extracted by json agent:")
 print(json_result.summary)
+
+with open("booking_summary.json", "w") as json_file:
+    json.dump(extracted_info, json_file, indent=1)
 
 
 # name is s s, mail is s@gmail.com, number 07960723102, 3 guests, 11/10/2024 reservation at 12pm
