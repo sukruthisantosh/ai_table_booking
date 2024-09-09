@@ -41,14 +41,15 @@ print("FINISHED")
 json_agent = ConversableAgent(
     name="json_agent",
     system_message="extract full name email UK phone number number of guests "
-                   "Date reservation time from the given chat history ",
+                   "Date reservation time from the given chat history",
     llm_config={"config_list": [{"model": "gpt-4o-mini","temperature":0,"api_key": os.environ.get("API_KEY")}]},
-    human_input_mode="NEVER"
+    human_input_mode="NEVER",
 )
 
 json_result = human_proxy.initiate_chat(
     json_agent,
-    message= formatted_chat
+    message=formatted_chat,
+    max_turns=1
 )
 
 extracted_info = json_result.summary
