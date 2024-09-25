@@ -6,17 +6,16 @@ async def send_booking():
     uri = "ws://localhost:8765"
     try:
         async with websockets.connect(uri) as websocket:
-            booking_info = {
-                'message': 'Booking Information',
-            }
+            booking_info = input("This is a table booking agent, what would you like to say? ")
 
-            # Send the booking info
-            await websocket.send(json.dumps(booking_info))
+            await websocket.send(booking_info)
             print(f"Sent: {booking_info}")
 
-            # Wait for the response
-            response = await websocket.recv()
-            print(f"Received: {response}")
+
+            while True:
+                msg = await websocket.recv()
+                print(msg)
+
 
     except websockets.exceptions.ConnectionClosedError as e:
         print(f"WebSocket connection closed with error: {e}")
@@ -25,5 +24,7 @@ async def send_booking():
     finally:
         print("Connection closed")
 
-if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(send_booking())
+
+asyncio.run(send_booking())
+
+

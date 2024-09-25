@@ -1,10 +1,11 @@
-import os
 import json
 import uuid
 import subprocess
 import asyncio
 import websockets
 from autogen import ConversableAgent
+from autogen.io.websockets import IOWebsockets
+
 
 def parse_booking_info(extracted_info):
     name_start = extracted_info.find("Name:") + len("Name: ")
@@ -46,10 +47,11 @@ def parse_booking_info(extracted_info):
         "time": reservation_time
     }
 
-async def process_booking(websocket, path):
+
+async def process_booking(websocket):
     try:
-        async for message in websocket:
-            data = json.loads(message)
+        while True:
+            data = await websocket.recv()
             print(f"Received message: {data}")
 
             api_key = "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"
@@ -57,7 +59,9 @@ async def process_booking(websocket, path):
             agent_booking_table = ConversableAgent(
                 "agent_booking_table",
                 system_message="You are a waitor at Pappadams taking a table booking collect name email UK phone number number of guests Date and reservation time",
-                llm_config={"config_list": [{"model": "gpt-4o-mini", "temperature": 1, "api_key": api_key}]},
+                llm_config={"config_list": [
+                    {"model": "gpt-4o-mini", "temperature": 1,
+                     "api_key": api_key}]},
                 human_input_mode="NEVER",
             )
 
@@ -69,7 +73,7 @@ async def process_booking(websocket, path):
 
             result = human_proxy.initiate_chat(
                 agent_booking_table,
-                message=data["message"]
+                message=data
             )
 
             full_chat = result.chat_history
@@ -78,7 +82,9 @@ async def process_booking(websocket, path):
             json_agent = ConversableAgent(
                 name="json_agent",
                 system_message="extract name email UK phone number number of guests Date reservation time from the given chat history in same format every time",
-                llm_config={"config_list": [{"model": "gpt-4o-mini", "temperature": 0, "api_key": api_key}]},
+                llm_config={"config_list": [
+                    {"model": "gpt-4o-mini", "temperature": 0,
+                     "api_key": api_key}]},
                 human_input_mode="NEVER",
             )
 
@@ -116,9 +122,6 @@ async def process_booking(websocket, path):
 start_server = websockets.serve(process_booking, "localhost", 8765)
 
 print("WebSocket server started on ws://localhost:8765")
-
-subprocess.run(["python","websocket_client.py"])
-print("Executing websocket_client.py")
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
