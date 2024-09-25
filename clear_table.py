@@ -18,6 +18,6 @@ def clear_dynamodb_table(table):
     print(f"All items deleted from table: {table_name}")
 
 
-if __name__ == '__main__':
-    table_name = 'Reservations'
-    clear_dynamodb_table(table_name)
+
+table_name = 'Reservations'
+clear_dynamodb_table(table_name)
