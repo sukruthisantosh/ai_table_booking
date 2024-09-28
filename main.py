@@ -2,7 +2,6 @@ import webpage
 import uvicorn
 import asyncio
 
-
 async def main():
     print("hello")
     config = uvicorn.Config(webpage.app)
