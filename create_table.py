@@ -37,6 +37,6 @@ def create_reservations_table(dynamodb=None):
     return table
 
 
-if __name__ == '__main__':
-    booking_table = create_reservations_table()
-    print("Status:", booking_table.table_status)
+
+booking_table = create_reservations_table()
+print("Status:", booking_table.table_status)
