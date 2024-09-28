@@ -6,9 +6,14 @@ import uuid
 
 import subprocess
 
+import autogen
+from websockets.sync.client import connect as ws_connect
+
 from autogen import ConversableAgent
 from autogen.io import IOWebsockets
 
+
+from autogen.io.websockets import IOWebsockets
 
 # automatically terminate at the end system_message="You are helping a user
 # book a table acting as a waitor at " "a restaurant called Pappadams," "take
@@ -106,6 +111,8 @@ def on_connect(iostream: IOWebsockets) -> None:
             "time": reservation_time
         }
 
+    print("chat summary extracted by json agent:")
+    print(json_result.summary)
 
     booking_info = parse_booking_info(chat_summary)
 
