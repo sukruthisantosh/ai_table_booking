@@ -10,6 +10,8 @@ import autogen
 from websockets.sync.client import connect as ws_connect
 
 from autogen import ConversableAgent
+from autogen.io import IOWebsockets
+
 
 from autogen.io.websockets import IOWebsockets
 
@@ -20,31 +22,13 @@ from autogen.io.websockets import IOWebsockets
 
 # the chat can't say booking confirmed at the end, we have to confirm, say recieved
 
-config_list = autogen.config_list_from_json(
-    env_or_file=os.path.join(os.path.dirname(__file__), 'model.json'),
-    filter_dict={
-        "model": ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-3.5-turbo-16k"],
-    },
-)
-
-
 def on_connect(iostream: IOWebsockets) -> None:
-    print(f" - on_connect(): Connected to client using IOWebsockets {iostream}",
-          flush=True)
-
-    print(" - on_connect(): Receiving message from client.", flush=True)
-
-    # 1. Receive Initial Message
-    initial_msg = iostream.input()
-    print(f"Initial message received: {initial_msg}")
-
 
     agent_booking_table = ConversableAgent(
         "agent_booking_table",
         system_message="You are a waitor at Pappadams taking a table booking collect name email UK phone number number of guests Date and reservation time",
         llm_config={"config_list": [{"model": "gpt-4o-mini", "temperature": 1,
-                                     "api_key": os.environ.get(
-                                         "API_KEY")}]},
+                                     "api_key": os.environ.get('OPEN_API_KEY')}]},
         # max_consecutive_auto_reply=1,
         human_input_mode="NEVER",
     )
@@ -57,7 +41,7 @@ def on_connect(iostream: IOWebsockets) -> None:
 
     result = human_proxy.initiate_chat(
         agent_booking_table,
-        message=initial_msg,
+        message="This is a table booking agent",
     )
 
     full_chat = result.chat_history
@@ -71,8 +55,7 @@ def on_connect(iostream: IOWebsockets) -> None:
         system_message="extract name email UK phone number number of guests "
                        "Date reservation time from the given chat history in same format every time",
         llm_config={"config_list": [{"model": "gpt-4o-mini", "temperature": 0,
-                                     "api_key": os.environ.get(
-                                         "API_KEY")}], "stream": True},
+                                     "api_key": os.environ.get('OPEN_API_KEY')}]},
         human_input_mode="NEVER",
     )
 
@@ -86,6 +69,7 @@ def on_connect(iostream: IOWebsockets) -> None:
 
     print("chat summary extracted by json agent:")
     print(json_result.summary)
+
 
     def parse_booking_info(extracted_info):
         name_start = extracted_info.find("Name:") + len("Name: ")
@@ -127,6 +111,9 @@ def on_connect(iostream: IOWebsockets) -> None:
             "time": reservation_time
         }
 
+    print("chat summary extracted by json agent:")
+    print(json_result.summary)
+
     booking_info = parse_booking_info(chat_summary)
 
     with open("booking_summary.json", "w") as json_file:
@@ -140,28 +127,5 @@ def on_connect(iostream: IOWebsockets) -> None:
 
     print("finished executing add_reservations.py")
 
-# name is s s, mail is s@gmail.com, number 07960723102, 3 guests, 11/10/2024 reservation at 12pm
-# name is sunny windy, mail is sw@gmail.com, number 07937623102, 5 guests, 31/11/2024 reservation at 1pm
-
-
-with (IOWebsockets.run_server_in_thread(on_connect=on_connect, port=8765) as uri):
-    print(f" - test_setup() with websocket server running on {uri}.", flush=True)
-
-    with ws_connect(uri) as websocket:
-        print(f" - Connected to server on {uri}", flush=True)
-
-        print(" - Sending message to server.", flush=True)
-        # websocket.send("2+2=?")
-        websocket.send("I want to book a table")
-
-
-        while True:
-            message = websocket.recv()
-            message = message.decode("utf-8") if isinstance(message, bytes) else message
-
-            print(message, end="", flush=True)
-
-            if "TERMINATE" in message:
-                print()
-                print(" - Received TERMINATE message. Exiting.", flush=True)
-                break
+    # name is s s, mail is s@gmail.com, number 07960723102, 3 guests, 11/10/2024 reservation at 12pm
+    # name is sunny windy, mail is sw@gmail.com, number 07937623102, 5 guests, 31/11/2024 reservation at 1pm

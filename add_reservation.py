@@ -17,8 +17,8 @@ def load_booking(booking_list, dynamodb=None):
 
         booking_table.put_item(Item=booking)
 
-if __name__ == '__main__':
-    with open("booking_summary.json") as json_file:
-        booking_list = json.load(json_file, parse_float=Decimal)
 
-    load_booking(booking_list)
+with open("booking_summary.json") as json_file:
+    booking_list = json.load(json_file, parse_float=Decimal)
+
+load_booking(booking_list)
